@@ -2,37 +2,39 @@ package cmd
 
 import (
 	"fmt"
-
+	"errors"
 	"github.com/spf13/cobra"
 )
 
-// decCmd respresents the dec command
+var flagSecret string
+
 var decCmd = &cobra.Command{
 	Use:   "dec",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
+	Short: "Decrypt Chef Data Bag",
+	Long: `Decrypt Chef data bag using a secret file.
+Outputs the result to STDOUT.
+Currently only Ver.1 data bags are supported. `,
+	RunE: func(cmd *cobra.Command, args []string) error {
+		if len(args) != 1 {
+      return errors.New("Please specify the file to decrypt.")
+		} else if flagSecret == "" {
+			return errors.New("Please specify the path of the secret file.")
+		}
 
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
-	Run: func(cmd *cobra.Command, args []string) {
-		// TODO: Work your own magic here
-		fmt.Println("dec called")
+		fmt.Printf("Will decrypt %s using %s", args[0], flagSecret)
+		fmt.Println()
+		return nil
 	},
 }
 
 func init() {
 	RootCmd.AddCommand(decCmd)
+	decCmd.Flags().StringVarP(&flagSecret, "secret", "s", "", "Path to the secret file")
 
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// decCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// decCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
-
+	decCmd.SetUsageTemplate(`Usage:
+  pops dec [flags] file
+{{ if .HasLocalFlags}}
+Flags:
+{{.LocalFlags.FlagUsages | trimRightSpace}}{{end}}
+`	)
 }

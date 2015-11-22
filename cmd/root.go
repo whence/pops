@@ -14,13 +14,13 @@ var RootCmd = &cobra.Command{
 	Short: "Everything ops",
 	Long: `The CLI for Ops.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		if flagVersion {
-			fmt.Printf("Pops version %s", lib.VersionNumber)
-			fmt.Println()
-			return nil
-		} else {
+		if !flagVersion {
 			return cmd.Usage()
 		}
+
+		fmt.Printf("Pops version %s", lib.VersionNumber)
+		fmt.Println()
+		return nil
 	},
 }
 
