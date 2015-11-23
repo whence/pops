@@ -1,8 +1,9 @@
 package cmd
 
 import (
-	"fmt"
 	"errors"
+	"fmt"
+
 	"github.com/spf13/cobra"
 	"github.com/whence/pops/lib"
 )
@@ -17,19 +18,18 @@ Outputs the result to STDOUT.
 Currently only Ver.1 data bags are supported. `,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if len(args) != 1 {
-      return errors.New("Please specify the file to decrypt.")
+			return errors.New("Please specify the file to decrypt.")
 		} else if flagSecret == "" {
 			return errors.New("Please specify the path of the secret file.")
 		}
 
-		item := lib.NewDataBagItem(args[0])
-		fmt.Printf("Results: %+v\n", item)
+		fmt.Println(lib.Decrypt(args[0]))
 		return nil
 	},
 }
 
 func init() {
-	RootCmd.AddCommand(decCmd)
+	rootCmd.AddCommand(decCmd)
 	decCmd.Flags().StringVarP(&flagSecret, "secret", "s", "", "Path to the secret file")
 
 	decCmd.SetUsageTemplate(`Usage:
@@ -37,5 +37,5 @@ func init() {
 {{ if .HasLocalFlags}}
 Flags:
 {{.LocalFlags.FlagUsages | trimRightSpace}}{{end}}
-`	)
+`)
 }

@@ -1,51 +1,57 @@
 package lib
 
 import (
-  "fmt"
-  "encoding/json"
-  "io/ioutil"
+	"encoding/json"
+	"fmt"
+	"io/ioutil"
 )
 
-type DataBagItem struct {
-	Id string
-	Entries map[string]*DataBagEntry
+type dataBagItem struct {
+	ID      string
+	Entries map[string]*dataBagEntry
 }
 
-type DataBagEntry struct {
-	Cipher string
+type dataBagEntry struct {
+	Cipher        string
 	EncryptedData string
-	Iv string
-	Version float64
+	Iv            string
+	Version       float64
 }
 
-func NewDataBagItem(path string) *DataBagItem {
-  file, e := ioutil.ReadFile(path)
-  if e != nil {
-    panic(fmt.Sprintf("File error: %v\n", e))
-  }
+// Decrypt a databag item file
+func Decrypt(path string) string {
+	item := newDataBagItem(path)
+	return fmt.Sprintf("Results: %+v\n", item)
+}
 
-  var kvs map[string]interface{}
-  json.Unmarshal(file, &kvs)
+func newDataBagItem(path string) *dataBagItem {
+	file, e := ioutil.ReadFile(path)
+	if e != nil {
+		panic(fmt.Sprintf("File error: %v\n", e))
+	}
 
-  item := new(DataBagItem)
-	item.Entries = make(map[string]*DataBagEntry)
+	var kvs map[string]interface{}
+	json.Unmarshal(file, &kvs)
 
-  for k, v := range kvs {
+	item := new(dataBagItem)
+	item.Entries = make(map[string]*dataBagEntry)
+
+	for k, v := range kvs {
 		switch k {
 		case "id":
-			item.Id = v.(string)
+			item.ID = v.(string)
 		default:
-      entry := v.(map[string]interface{})
-			item.Entries[k] = &DataBagEntry{
-    		Cipher: entry["cipher"].(string),
-    		EncryptedData: entry["encrypted_data"].(string),
-    		Iv: entry["iv"].(string),
-    		Version: entry["version"].(float64),
-    	}
+			entry := v.(map[string]interface{})
+			item.Entries[k] = &dataBagEntry{
+				Cipher:        entry["cipher"].(string),
+				EncryptedData: entry["encrypted_data"].(string),
+				Iv:            entry["iv"].(string),
+				Version:       entry["version"].(float64),
+			}
 		}
 	}
 
-  return item
+	return item
 }
 
 // func (e *EncryptedDataBagItem) DecryptKey(keyName, secret string) interface{} {
