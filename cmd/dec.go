@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"errors"
 	"github.com/spf13/cobra"
+	"github.com/whence/pops/lib"
 )
 
 var flagSecret string
@@ -21,8 +22,8 @@ Currently only Ver.1 data bags are supported. `,
 			return errors.New("Please specify the path of the secret file.")
 		}
 
-		fmt.Printf("Will decrypt %s using %s", args[0], flagSecret)
-		fmt.Println()
+		item := lib.NewDataBagItem(args[0])
+		fmt.Printf("Results: %+v\n", item)
 		return nil
 	},
 }
