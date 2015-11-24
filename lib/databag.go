@@ -81,6 +81,9 @@ func (encryptedItem *encryptedDataBagItem) decrypt(secretData []byte) map[string
 		if entry.Version != 1 {
 			panic(fmt.Sprintf("Not implemented for encrypted bag version %f", entry.Version))
 		}
+		if entry.Cipher != "aes-256-cbc" {
+			panic(fmt.Sprintf("Not implemented for encrypted bag cipher %s", entry.Cipher))
+		}
 
 		entries[key] = entry.decrypt(secretData)
 	}
@@ -88,6 +91,7 @@ func (encryptedItem *encryptedDataBagItem) decrypt(secretData []byte) map[string
 	return entries
 }
 
+// proudly stolen from https://github.com/go-chef/cryptobag/blob/master/decrypter_v1.go
 func (entry *encryptedDataBagEntry) decrypt(secretData []byte) string {
 	ciphertext := decodeBase64(entry.EncryptedData)
 	initVector := decodeBase64(entry.Iv)
