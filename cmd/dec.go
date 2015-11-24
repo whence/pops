@@ -23,7 +23,7 @@ Currently only Ver.1 data bags are supported. `,
 			return errors.New("Please specify the path of the secret file.")
 		}
 
-		fmt.Println(lib.Decrypt(args[0]))
+		fmt.Println(lib.Decrypt(args[0], flagSecret))
 		return nil
 	},
 }

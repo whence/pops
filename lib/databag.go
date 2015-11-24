@@ -1,40 +1,59 @@
 package lib
 
 import (
+	"crypto/aes"
+	"crypto/cipher"
+	"crypto/sha256"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
 )
 
-type dataBagItem struct {
+type encryptedDataBagItem struct {
 	ID      string
-	Entries map[string]*dataBagEntry
+	Entries map[string]*encryptedDataBagEntry
 }
 
-type dataBagEntry struct {
+type encryptedDataBagEntry struct {
 	Cipher        string
 	EncryptedData string
 	Iv            string
 	Version       float64
 }
 
-// Decrypt a databag item file
-func Decrypt(path string) string {
-	item := newDataBagItem(path)
-	return fmt.Sprintf("Results: %+v\n", item)
+type version1Wrapper struct {
+	Content string `json:"json_wrapper"`
 }
 
-func newDataBagItem(path string) *dataBagItem {
-	file, e := ioutil.ReadFile(path)
+// Decrypt a databag item file
+func Decrypt(itemPath, secretPath string) string {
+	encryptedItem := newEncryptedDataBagItem(readFile(itemPath))
+	secretData := readFile(secretPath)
+	entries := encryptedItem.decrypt(secretData)
+	bytes, e := json.MarshalIndent(entries, "", "  ")
+	if e != nil {
+		panic("Failed to marshal data bag item")
+	}
+	return string(bytes)
+}
+
+func readFile(path string) []byte {
+	content, e := ioutil.ReadFile(path)
 	if e != nil {
 		panic(fmt.Sprintf("File error: %v\n", e))
 	}
+	return content
+}
 
+func newEncryptedDataBagItem(raw []byte) *encryptedDataBagItem {
 	var kvs map[string]interface{}
-	json.Unmarshal(file, &kvs)
+	if json.Unmarshal(raw, &kvs) != nil {
+		panic("Failed to unmarshal data bag item")
+	}
 
-	item := new(dataBagItem)
-	item.Entries = make(map[string]*dataBagEntry)
+	item := new(encryptedDataBagItem)
+	item.Entries = make(map[string]*encryptedDataBagEntry)
 
 	for k, v := range kvs {
 		switch k {
@@ -42,11 +61,11 @@ func newDataBagItem(path string) *dataBagItem {
 			item.ID = v.(string)
 		default:
 			entry := v.(map[string]interface{})
-			item.Entries[k] = &dataBagEntry{
+			item.Entries[k] = &encryptedDataBagEntry{
+				Version:       entry["version"].(float64),
 				Cipher:        entry["cipher"].(string),
 				EncryptedData: entry["encrypted_data"].(string),
 				Iv:            entry["iv"].(string),
-				Version:       entry["version"].(float64),
 			}
 		}
 	}
@@ -54,13 +73,62 @@ func newDataBagItem(path string) *dataBagItem {
 	return item
 }
 
-// func (e *EncryptedDataBagItem) DecryptKey(keyName, secret string) interface{} {
-// 	key := e.Keys[keyName]
-//
-// 	switch key.Version {
-// 	case 1:
-// 		return version1Decoder([]byte(secret), key.Iv, key.EncryptedData)
-// 	default:
-// 		panic(fmt.Sprintf("not implemented for encrypted bag version %d!", key.Version))
-// 	}
-// }
+func (encryptedItem *encryptedDataBagItem) decrypt(secretData []byte) map[string]string {
+	entries := make(map[string]string, len(encryptedItem.Entries)+1)
+	entries["id"] = encryptedItem.ID
+
+	for key, entry := range encryptedItem.Entries {
+		if entry.Version != 1 {
+			panic(fmt.Sprintf("Not implemented for encrypted bag version %f", entry.Version))
+		}
+
+		entries[key] = entry.decrypt(secretData)
+	}
+
+	return entries
+}
+
+func (entry *encryptedDataBagEntry) decrypt(secretData []byte) string {
+	ciphertext := decodeBase64(entry.EncryptedData)
+	initVector := decodeBase64(entry.Iv)
+	keySha := sha256.Sum256(secretData)
+
+	block, err := aes.NewCipher(keySha[:])
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	if len(ciphertext)%aes.BlockSize != 0 {
+		panic("Ciphertext is not a multiple of the block size")
+	}
+
+	mode := cipher.NewCBCDecrypter(block, initVector)
+	mode.CryptBlocks(ciphertext, ciphertext)
+
+	ciphertext = unPKCS7Padding(ciphertext)
+
+	var wrapper version1Wrapper
+	if json.Unmarshal(ciphertext, &wrapper) != nil {
+		panic("Failed to unmarshal data bag content")
+	}
+
+	return wrapper.Content
+}
+
+func decodeBase64(str string) []byte {
+	data, err := base64.StdEncoding.DecodeString(str)
+	if err != nil {
+		fmt.Println("error:", err)
+	}
+	return data
+}
+
+func unPKCS7Padding(data []byte) []byte {
+	dataLen := len(data)
+	endIndex := int(data[dataLen-1])
+
+	if 16 > endIndex {
+		return data[:dataLen-endIndex]
+	}
+	return nil
+}
