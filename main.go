@@ -1,6 +1,6 @@
 package main
 
-import "github.com/whence/pops/cmd"
+import "github.com/MYOB-Technology/pops/cmd"
 
 func main() {
 	cmd.Execute()

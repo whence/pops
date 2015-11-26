@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/MYOB-Technology/pops/lib"
 	"github.com/spf13/cobra"
-	"github.com/whence/pops/lib"
 )
 
 var flagVersion bool
