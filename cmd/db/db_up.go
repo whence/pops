@@ -66,7 +66,14 @@ func upLocalDockerPg() error {
 	}
 
 	if err := backoff.Retry(func() error {
-		if err := lib.TryPgConnection(flagMasterUsername, flagMasterPassword, flagDbHost, dbPort, "postgres", "disable"); err != nil {
+		if err := lib.TryPgConnection(&lib.PostgresConnection{
+			Username: flagMasterUsername,
+			Password: flagMasterPassword,
+			Host:     flagDbHost,
+			Port:     dbPort,
+			Database: "postgres",
+			SslMode:  "disable",
+		}); err != nil {
 			fmt.Println("Try connecting to " + flagDbHost + " db")
 			return err
 		}
