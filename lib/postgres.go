@@ -2,8 +2,8 @@ package lib
 
 import (
 	"database/sql"
-	"errors"
 	"fmt"
+	"time"
 
 	// just load the pg driver
 	_ "github.com/lib/pq"
@@ -26,27 +26,23 @@ func (c *PostgresConnection) getConnectionString() string {
 }
 
 // TryPgConnection tests connection to a postgres database
-func TryPgConnection(conn *PostgresConnection) error {
+func TryPgConnection(conn *PostgresConnection, attempt int) error {
 	db, err := sql.Open("postgres", conn.getConnectionString())
 	defer db.Close()
 	if err != nil {
 		return err
 	}
 
-	err = db.Ping()
-	if err != nil {
-		return err
+	for i := 0; i < attempt; i++ {
+		err = db.Ping()
+		if err == nil {
+			return nil
+		}
+		fmt.Println(fmt.Sprintf("Try connecting to %s:%d", conn.Host, conn.Port))
+		time.Sleep(1 * time.Second)
 	}
 
-	result, errQuery := db.Exec("SELECT * FROM pg_database where datname = $1", conn.Database)
-	if errQuery != nil {
-		return errQuery
-	}
-	if rows, errResult := result.RowsAffected(); errResult != nil || rows == 0 {
-		return errors.New("Failed to find database " + conn.Database)
-	}
-
-	return nil
+	return err
 }
 
 func initialiseForApp(conn *PostgresConnection, appDatabase, appUsername, appPassword string) error {

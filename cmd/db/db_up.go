@@ -3,10 +3,8 @@ package db
 import (
 	"errors"
 	"fmt"
-	"time"
 
 	"github.com/MYOB-Technology/pops/lib"
-	"github.com/cenkalti/backoff"
 	"github.com/spf13/cobra"
 )
 
@@ -18,7 +16,7 @@ var flagAppPassword string
 var flagDbHost string
 var flagDbPort int
 var flagImageName string
-var flagPollDbTimeout int
+var flagPollDbAttempt int
 
 var dbUpCmd = &cobra.Command{
 	Use:   "up",
@@ -65,24 +63,20 @@ func upLocalDockerPg() error {
 		fmt.Println("Container " + flagContainerName + " is already running.")
 	}
 
-	if err := backoff.Retry(func() error {
-		if err := lib.TryPgConnection(&lib.PostgresConnection{
-			Username: flagMasterUsername,
-			Password: flagMasterPassword,
-			Host:     flagDbHost,
-			Port:     dbPort,
-			Database: "postgres",
-			SslMode:  "disable",
-		}); err != nil {
-			fmt.Println("Try connecting to " + flagDbHost + " db")
-			return err
-		}
-		return nil
-	}, lib.NewLimitedConstantBackOff(1*time.Second, time.Duration(flagPollDbTimeout)*time.Second)); err != nil {
+	conn := &lib.PostgresConnection{
+		Username: flagMasterUsername,
+		Password: flagMasterPassword,
+		Host:     flagDbHost,
+		Port:     dbPort,
+		Database: "postgres",
+		SslMode:  "disable",
+	}
+
+	if err := lib.TryPgConnection(conn, flagPollDbAttempt); err != nil {
 		return err
 	}
 
-	fmt.Println("OK. " + flagDbHost + " is ready to use!")
+	fmt.Println(fmt.Sprintf("%s:%d is ready to use!", conn.Host, conn.Port))
 
 	return nil
 }
@@ -97,5 +91,5 @@ func init() {
 	dbUpCmd.Flags().StringVar(&flagDbHost, "host", "localhost", "The database host")
 	dbUpCmd.Flags().IntVarP(&flagDbPort, "port", "p", -1, "The database port to run the datbase. Defaults to the database default port. e.g. Postgres is 5432")
 	dbUpCmd.Flags().StringVarP(&flagImageName, "image", "i", "", "The docker image (can append tag) to use for the datbase. Applicable to docker drivers only.")
-	dbUpCmd.Flags().IntVar(&flagPollDbTimeout, "timeout", 60, "Timeout in seconds for polling the database running")
+	dbUpCmd.Flags().IntVar(&flagPollDbAttempt, "attempt", 60, "The number of attempt for trying to connect to the database while starting up.")
 }
