@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/MYOB-Technology/pops/cmd/db"
 	"github.com/MYOB-Technology/pops/lib"
 	"github.com/spf13/cobra"
 )
@@ -27,6 +28,7 @@ var rootCmd = &cobra.Command{
 
 func init() {
 	rootCmd.Flags().BoolVar(&flagVersion, "version", false, "Print version number")
+	rootCmd.AddCommand(db.DbCmd)
 }
 
 // Execute the root command
