@@ -1,0 +1,83 @@
+package db
+
+import (
+	"errors"
+	"fmt"
+
+	"github.com/MYOB-Technology/pops/lib"
+	"github.com/spf13/cobra"
+)
+
+var flagInitMasterUsername string
+var flagInitMasterPassword string
+var flagInitDbHost string
+var flagInitDbPort int
+var flagAppDatabase string
+var flagAppUsername string
+var flagAppPassword string
+var flagInitDbSslMode string
+
+var dbInitCmd = &cobra.Command{
+	Use:   "init",
+	Short: "Initialize the database",
+	Long:  `Initialize the database so it is ready to be used by the app`,
+	RunE: func(cmd *cobra.Command, args []string) error {
+		if flagAppDatabase == "" {
+			return errors.New("Please specify app database to initialize.")
+		}
+		return initPg()
+	},
+	SilenceErrors: true,
+}
+
+func initPg() error {
+	var dbPort int
+	if flagInitDbPort == -1 {
+		dbPort = 5432
+	} else {
+		dbPort = flagInitDbPort
+	}
+
+	conn := &lib.PostgresConnection{
+		Username: flagInitMasterUsername,
+		Password: flagInitMasterPassword,
+		Host:     flagInitDbHost,
+		Port:     dbPort,
+		Database: "postgres",
+		SslMode:  flagInitDbSslMode,
+	}
+
+	db, err := lib.PgConnection(conn)
+	defer db.Close()
+	if err != nil {
+		return err
+	}
+
+	exists, err := lib.DatabaseExists(db, flagAppDatabase)
+	if err != nil {
+		return err
+	}
+
+	if exists {
+		fmt.Println("Database " + flagAppDatabase + " already exists")
+	} else {
+		if err := lib.CreateDatabase(db, flagAppDatabase); err != nil {
+			return err
+		}
+		fmt.Println("Database " + flagAppDatabase + " created")
+	}
+
+	return nil
+}
+
+func init() {
+	DbCmd.AddCommand(dbInitCmd)
+	dbInitCmd.Flags().StringVar(&flagInitMasterUsername, "master-username", "postgres", "The master username of database server.")
+	dbInitCmd.Flags().StringVar(&flagInitMasterPassword, "master-password", "mysecretpassword", "The master password of database server.")
+	dbInitCmd.Flags().StringVar(&flagInitDbHost, "host", "localhost", "The database host")
+	dbInitCmd.Flags().IntVarP(&flagInitDbPort, "port", "p", -1, "The database port to run the datbase. Defaults to the database default port. e.g. Postgres is 5432")
+	dbInitCmd.Flags().StringVar(&flagAppDatabase, "app-database", "", "The application database to create.")
+	dbInitCmd.Flags().StringVar(&flagAppUsername, "app-username", "app", "The application username of application database to create.")
+	dbInitCmd.Flags().StringVar(&flagAppPassword, "app-password", "mysecretpassword", "The application password of application database to create.")
+	dbInitCmd.Flags().StringVar(&flagInitDbSslMode, "ssl-mode", "require", "SSL mode for some drivers, such as Postgres.")
+}

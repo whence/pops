@@ -25,9 +25,14 @@ func (c *PostgresConnection) getConnectionString() string {
 	)
 }
 
+// PgConnection connects to a postgres DB
+func PgConnection(conn *PostgresConnection) (*sql.DB, error) {
+	return sql.Open("postgres", conn.getConnectionString())
+}
+
 // TryPgConnection tests connection to a postgres database
 func TryPgConnection(conn *PostgresConnection, attempt int) error {
-	db, err := sql.Open("postgres", conn.getConnectionString())
+	db, err := PgConnection(conn)
 	defer db.Close()
 	if err != nil {
 		return err
@@ -45,9 +50,19 @@ func TryPgConnection(conn *PostgresConnection, attempt int) error {
 	return err
 }
 
-func initialiseForApp(conn *PostgresConnection, appDatabase, appUsername, appPassword string) error {
-	db, err := sql.Open("postgres", conn.getConnectionString())
-	defer db.Close()
+// DatabaseExists check if a database exists
+func DatabaseExists(db *sql.DB, name string) (bool, error) {
+	rows, err := db.Query("SELECT * FROM pg_database where datname = $1", name)
+	if err != nil {
+		return false, err
+	}
+	defer rows.Close()
+	return rows.Next(), nil
+}
+
+// CreateDatabase create a database
+func CreateDatabase(db *sql.DB, name string) error {
+	_, err := db.Exec("CREATE DATABASE " + name)
 	if err != nil {
 		return err
 	}

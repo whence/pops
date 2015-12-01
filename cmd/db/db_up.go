@@ -8,29 +8,32 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var flagMasterUsername string
-var flagMasterPassword string
-var flagAppDatabase string
-var flagAppUsername string
-var flagAppPassword string
-var flagDbHost string
-var flagDbPort int
+var flagUpDriver string
+var flagUpContainerName string
+var flagUpMasterUsername string
+var flagUpMasterPassword string
+var flagUpDbHost string
+var flagUpDbPort int
 var flagImageName string
 var flagPollDbAttempt int
+var flagUpDbSslMode string
 
 var dbUpCmd = &cobra.Command{
 	Use:   "up",
 	Short: "Start the database",
 	Long:  `Create a database ready to be used.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		if flagDriver == "" {
+		if flagUpDriver == "" {
 			return errors.New("Please specify the driver to use.")
-		} else if flagDriver == "local-docker-pg" {
+		}
+
+		switch flagUpDriver {
+		case "local-docker-pg":
 			if flagImageName == "" {
 				return errors.New("Please specify the image to use.")
 			}
 			return upLocalDockerPg()
-		} else {
+		default:
 			return errors.New("Unknown driver.")
 		}
 	},
@@ -39,37 +42,39 @@ var dbUpCmd = &cobra.Command{
 
 func upLocalDockerPg() error {
 	var dbPort int
-	if flagDbPort == -1 {
+	if flagUpDbPort == -1 {
 		dbPort = 5432
 	} else {
-		dbPort = flagDbPort
+		dbPort = flagUpDbPort
 	}
+
+	conn := &lib.PostgresConnection{
+		Username: flagUpMasterUsername,
+		Password: flagUpMasterPassword,
+		Host:     flagUpDbHost,
+		Port:     dbPort,
+		Database: "postgres",
+		SslMode:  flagUpDbSslMode,
+	}
+
+	containerName := flagUpContainerName
 
 	if err := lib.EnsureDockerWorking(); err != nil {
 		return err
 	}
 
-	if !lib.IsContainerExist(flagContainerName) {
-		if err := lib.RunContainer(flagContainerName, []string{
-			"-e", fmt.Sprintf("POSTGRES_USER=%s", flagMasterUsername),
-			"-e", fmt.Sprintf("POSTGRES_PASSWORD=%s", flagMasterPassword),
-			"-p", fmt.Sprintf("%d:5432", dbPort),
+	if !lib.IsContainerExist(containerName) {
+		if err := lib.RunContainer(containerName, []string{
+			"-e", fmt.Sprintf("POSTGRES_USER=%s", conn.Username),
+			"-e", fmt.Sprintf("POSTGRES_PASSWORD=%s", conn.Password),
+			"-p", fmt.Sprintf("%d:5432", conn.Port),
 			"-d",
 		}, flagImageName); err != nil {
 			return err
 		}
-		fmt.Println("Running container " + flagContainerName)
+		fmt.Println("Running container " + containerName)
 	} else {
-		fmt.Println("Container " + flagContainerName + " is already running.")
-	}
-
-	conn := &lib.PostgresConnection{
-		Username: flagMasterUsername,
-		Password: flagMasterPassword,
-		Host:     flagDbHost,
-		Port:     dbPort,
-		Database: "postgres",
-		SslMode:  "disable",
+		fmt.Println("Container " + containerName + " is already running.")
 	}
 
 	if err := lib.TryPgConnection(conn, flagPollDbAttempt); err != nil {
@@ -83,13 +88,13 @@ func upLocalDockerPg() error {
 
 func init() {
 	DbCmd.AddCommand(dbUpCmd)
-	dbUpCmd.Flags().StringVar(&flagMasterUsername, "master-username", "postgres", "The master username of database server to create.")
-	dbUpCmd.Flags().StringVar(&flagMasterPassword, "master-password", "mysecretpassword", "The master password of database server to create.")
-	dbUpCmd.Flags().StringVar(&flagAppDatabase, "app-database", "", "The application database to create.")
-	dbUpCmd.Flags().StringVar(&flagAppUsername, "app-username", "app", "The application username of application database to create.")
-	dbUpCmd.Flags().StringVar(&flagAppPassword, "app-password", "mysecretpassword", "The application password of application database to create.")
-	dbUpCmd.Flags().StringVar(&flagDbHost, "host", "localhost", "The database host")
-	dbUpCmd.Flags().IntVarP(&flagDbPort, "port", "p", -1, "The database port to run the datbase. Defaults to the database default port. e.g. Postgres is 5432")
+	dbUpCmd.Flags().StringVarP(&flagUpDriver, "driver", "d", "", "The driver to use to control the datbase. Currently only local-docker-pg is supported.")
+	dbUpCmd.Flags().StringVar(&flagUpContainerName, "container", "pops-db", "The name of container to run. Applicable to docker drivers only.")
+	dbUpCmd.Flags().StringVar(&flagUpMasterUsername, "master-username", "postgres", "The master username of database server.")
+	dbUpCmd.Flags().StringVar(&flagUpMasterPassword, "master-password", "mysecretpassword", "The master password of database server.")
+	dbUpCmd.Flags().StringVar(&flagUpDbHost, "host", "localhost", "The database host")
+	dbUpCmd.Flags().IntVarP(&flagUpDbPort, "port", "p", -1, "The database port to run the datbase. Defaults to the database default port. e.g. Postgres is 5432")
 	dbUpCmd.Flags().StringVarP(&flagImageName, "image", "i", "", "The docker image (can append tag) to use for the datbase. Applicable to docker drivers only.")
 	dbUpCmd.Flags().IntVar(&flagPollDbAttempt, "attempt", 60, "The number of attempt for trying to connect to the database while starting up.")
+	dbUpCmd.Flags().StringVar(&flagUpDbSslMode, "ssl-mode", "", "SSL mode for some drivers, such as Postgres.")
 }
