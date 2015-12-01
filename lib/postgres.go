@@ -50,9 +50,9 @@ func TryPgConnection(conn *PostgresConnection, attempt int) error {
 	return err
 }
 
-// DatabaseExists check if a database exists
-func DatabaseExists(db *sql.DB, name string) (bool, error) {
-	rows, err := db.Query("SELECT * FROM pg_database where datname = $1", name)
+// DatabaseExists checks if a database exists
+func DatabaseExists(db *sql.DB, databaseName string) (bool, error) {
+	rows, err := db.Query("SELECT * FROM pg_database where datname = $1", databaseName)
 	if err != nil {
 		return false, err
 	}
@@ -60,9 +60,28 @@ func DatabaseExists(db *sql.DB, name string) (bool, error) {
 	return rows.Next(), nil
 }
 
-// CreateDatabase create a database
-func CreateDatabase(db *sql.DB, name string) error {
-	_, err := db.Exec("CREATE DATABASE " + name)
+// CreateDatabase creates a database
+func CreateDatabase(db *sql.DB, databaseName string) error {
+	_, err := db.Exec("CREATE DATABASE " + databaseName)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// UserExists checks if a user exists
+func UserExists(db *sql.DB, username string) (bool, error) {
+	rows, err := db.Query("SELECT * FROM pg_user WHERE usename=$1", username)
+	if err != nil {
+		return false, err
+	}
+	defer rows.Close()
+	return rows.Next(), nil
+}
+
+// CreateUser creates a user
+func CreateUser(db *sql.DB, username, password string) error {
+	_, err := db.Exec(fmt.Sprintf("CREATE USER \"%s\" WITH NOCREATEDB NOCREATEROLE LOGIN NOREPLICATION NOSUPERUSER PASSWORD '%s'", username, password))
 	if err != nil {
 		return err
 	}

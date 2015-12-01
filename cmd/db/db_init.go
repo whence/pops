@@ -1,6 +1,7 @@
 package db
 
 import (
+	"database/sql"
 	"errors"
 	"fmt"
 
@@ -53,20 +54,46 @@ func initPg() error {
 		return err
 	}
 
-	exists, err := lib.DatabaseExists(db, flagAppDatabase)
-	if err != nil {
+	if err := createAppDatabase(db, flagAppDatabase); err != nil {
 		return err
 	}
 
-	if exists {
-		fmt.Println("Database " + flagAppDatabase + " already exists")
-	} else {
-		if err := lib.CreateDatabase(db, flagAppDatabase); err != nil {
-			return err
-		}
-		fmt.Println("Database " + flagAppDatabase + " created")
+	if err := createAppUser(db, flagAppUsername, flagAppPassword); err != nil {
+		return err
 	}
 
+	return nil
+}
+
+func createAppDatabase(db *sql.DB, databaseName string) error {
+	exists, err := lib.DatabaseExists(db, databaseName)
+	if err != nil {
+		return err
+	}
+	if exists {
+		fmt.Println("Database " + databaseName + " already exists")
+	} else {
+		if err := lib.CreateDatabase(db, databaseName); err != nil {
+			return err
+		}
+		fmt.Println("Database " + databaseName + " created")
+	}
+	return nil
+}
+
+func createAppUser(db *sql.DB, username, password string) error {
+	exists, err := lib.UserExists(db, username)
+	if err != nil {
+		return err
+	}
+	if exists {
+		fmt.Println("User " + username + " already exists")
+	} else {
+		if err := lib.CreateUser(db, username, password); err != nil {
+			return err
+		}
+		fmt.Println("User " + username + " created")
+	}
 	return nil
 }
 
