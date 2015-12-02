@@ -1,4 +1,4 @@
 package lib
 
 // VersionNumber of the app
-const VersionNumber = "0.0.2"
+const VersionNumber = "1.0.0"
