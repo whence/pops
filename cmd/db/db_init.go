@@ -14,6 +14,7 @@ var flagInitMasterPassword string
 var flagInitDbHost string
 var flagInitDbPort int
 var flagAppDatabase string
+var flagAppSchema string
 var flagAppUsername string
 var flagAppPassword string
 var flagInitDbSslMode string
@@ -58,7 +59,7 @@ func initPg() error {
 		return err
 	}
 
-	if err := createAppUser(db, flagAppUsername, flagAppPassword); err != nil {
+	if err := createAppUser(db, flagAppUsername, flagAppPassword, flagAppDatabase, flagAppSchema); err != nil {
 		return err
 	}
 
@@ -81,7 +82,7 @@ func createAppDatabase(db *sql.DB, databaseName string) error {
 	return nil
 }
 
-func createAppUser(db *sql.DB, username, password string) error {
+func createAppUser(db *sql.DB, username, password, databaseName, schema string) error {
 	exists, err := lib.UserExists(db, username)
 	if err != nil {
 		return err
@@ -93,6 +94,12 @@ func createAppUser(db *sql.DB, username, password string) error {
 			return err
 		}
 		fmt.Println("User " + username + " created")
+
+		if err := lib.GrantFullPrivileges(db, username, databaseName, schema); err != nil {
+			return err
+		}
+		fmt.Printf("Granted full privileges to user %s on database %s schema %s", username, databaseName, schema)
+		fmt.Println()
 	}
 	return nil
 }
@@ -104,6 +111,7 @@ func init() {
 	dbInitCmd.Flags().StringVar(&flagInitDbHost, "host", "localhost", "The database host")
 	dbInitCmd.Flags().IntVarP(&flagInitDbPort, "port", "p", -1, "The database port to run the datbase. Defaults to the database default port. e.g. Postgres is 5432")
 	dbInitCmd.Flags().StringVar(&flagAppDatabase, "app-database", "", "The application database to create.")
+	dbInitCmd.Flags().StringVar(&flagAppSchema, "app-schema", "public", "The application schema to create.")
 	dbInitCmd.Flags().StringVar(&flagAppUsername, "app-username", "app", "The application username of application database to create.")
 	dbInitCmd.Flags().StringVar(&flagAppPassword, "app-password", "mysecretpassword", "The application password of application database to create.")
 	dbInitCmd.Flags().StringVar(&flagInitDbSslMode, "ssl-mode", "require", "SSL mode for some drivers, such as Postgres.")

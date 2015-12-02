@@ -87,3 +87,22 @@ func CreateUser(db *sql.DB, username, password string) error {
 	}
 	return nil
 }
+
+// GrantFullPrivileges grants full previledges for a user to a database schema
+func GrantFullPrivileges(db *sql.DB, username, databaseName, schema string) error {
+	queries := []string{
+		fmt.Sprintf("GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA %s TO %s", schema, username),
+		fmt.Sprintf("GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA %s TO %s", schema, username),
+		fmt.Sprintf("GRANT ALL PRIVILEGES ON ALL FUNCTIONS IN SCHEMA %s TO %s", schema, username),
+		fmt.Sprintf("ALTER DEFAULT PRIVILEGES IN SCHEMA %s GRANT ALL PRIVILEGES ON TABLES TO %s", schema, username),
+		fmt.Sprintf("ALTER DEFAULT PRIVILEGES IN SCHEMA %s GRANT ALL PRIVILEGES ON SEQUENCES TO %s", schema, username),
+		fmt.Sprintf("ALTER DEFAULT PRIVILEGES IN SCHEMA %s GRANT ALL PRIVILEGES ON FUNCTIONS TO %s", schema, username),
+	}
+	for _, q := range queries {
+		_, err := db.Exec(q)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
