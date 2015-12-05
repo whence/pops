@@ -8,4 +8,4 @@ A progressive rewrite of [platform_ops](https://github.com/MYOB-Technology/platf
 - Much much faster. This is important for quick tasks. For instance, `knife data bag show` took 6s while `pops` can do it in under 0.1s.
 - Single command to do everything, just like `git`.
 - Self-documented with `--help`.
-- Open source. No need to use your github private key to pull the source or use the distribution.
+- Open source, including all the dependencies. No need to use your ssh key to pull the source or use the distribution.
