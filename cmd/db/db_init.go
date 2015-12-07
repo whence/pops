@@ -109,7 +109,7 @@ func init() {
 	dbInitCmd.Flags().StringVar(&flagInitMasterUsername, "master-username", "postgres", "The master username of database server.")
 	dbInitCmd.Flags().StringVar(&flagInitMasterPassword, "master-password", "mysecretpassword", "The master password of database server.")
 	dbInitCmd.Flags().StringVar(&flagInitDbHost, "host", "localhost", "The database host")
-	dbInitCmd.Flags().IntVarP(&flagInitDbPort, "port", "p", -1, "The database port to run the datbase. Defaults to the database default port. e.g. Postgres is 5432")
+	dbInitCmd.Flags().IntVarP(&flagInitDbPort, "port", "p", -1, "The database port to run the database. Defaults to the database default port. e.g. Postgres is 5432")
 	dbInitCmd.Flags().StringVar(&flagAppDatabase, "app-database", "", "The application database to create.")
 	dbInitCmd.Flags().StringVar(&flagAppSchema, "app-schema", "public", "The application schema to create.")
 	dbInitCmd.Flags().StringVar(&flagAppUsername, "app-username", "app", "The application username of application database to create.")

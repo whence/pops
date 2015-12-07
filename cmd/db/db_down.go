@@ -49,6 +49,6 @@ func downLocalDockerPg() error {
 
 func init() {
 	DbCmd.AddCommand(dbDownCmd)
-	dbDownCmd.Flags().StringVarP(&flagDownDriver, "driver", "d", "", "The driver to use to control the datbase. Currently only local-docker-pg is supported.")
+	dbDownCmd.Flags().StringVarP(&flagDownDriver, "driver", "d", "", "The driver to use to control the database. Currently only local-docker-pg is supported.")
 	dbDownCmd.Flags().StringVar(&flagDownContainerName, "container", "pops-db", "The name of container to run. Applicable to docker drivers only.")
 }
