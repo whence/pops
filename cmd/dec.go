@@ -8,7 +8,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var flagSecret string
+var flagDecSecret string
 
 var decCmd = &cobra.Command{
 	Use:   "dec",
@@ -19,18 +19,18 @@ Currently only Ver.1 data bags are supported. `,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if len(args) != 1 {
 			return errors.New("Please specify the file to decrypt.")
-		} else if flagSecret == "" {
+		} else if flagDecSecret == "" {
 			return errors.New("Please specify the path of the secret file.")
 		}
 
-		fmt.Println(lib.Decrypt(args[0], flagSecret))
+		fmt.Println(lib.Decrypt(args[0], flagDecSecret))
 		return nil
 	},
 }
 
 func init() {
 	rootCmd.AddCommand(decCmd)
-	decCmd.Flags().StringVarP(&flagSecret, "secret", "s", "", "Path to the secret file")
+	decCmd.Flags().StringVarP(&flagDecSecret, "secret", "s", "", "Path to the secret file")
 
 	decCmd.SetUsageTemplate(`Usage:
   pops dec [flags] file
