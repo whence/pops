@@ -112,8 +112,8 @@ func (entry *encryptedDataBagEntry) decrypt(secretData []byte) string {
 	ciphertext = unPKCS7Padding(ciphertext)
 
 	var wrapper version1Wrapper
-	if json.Unmarshal(ciphertext, &wrapper) != nil {
-		panic("Failed to unmarshal data bag content")
+	if err := json.Unmarshal(ciphertext, &wrapper); err != nil {
+		panic(fmt.Sprintf("Failed to unmarshal data bag content. %+v", err))
 	}
 
 	return wrapper.Content
@@ -130,9 +130,6 @@ func decodeBase64(str string) []byte {
 func unPKCS7Padding(data []byte) []byte {
 	dataLen := len(data)
 	endIndex := int(data[dataLen-1])
-
-	if 16 > endIndex {
-		return data[:dataLen-endIndex]
-	}
-	return nil
+	// no need to protect 16 byte. http://stackoverflow.com/questions/7447242/how-does-pkcs7-not-lose-data
+	return data[:dataLen-endIndex]
 }
