@@ -9,7 +9,7 @@ import (
 
 var flagRandSecretSize int
 var flagRandSecretBase64 bool
-var flagRandSecretNewLine string
+var flagRandSecretNewLine bool
 
 var randSecretCmd = &cobra.Command{
 	Use:   "secret",
@@ -23,7 +23,9 @@ var randSecretCmd = &cobra.Command{
 		} else {
 			fmt.Print(string(b))
 		}
-		fmt.Print(flagRandSecretNewLine)
+		if flagRandSecretNewLine {
+			fmt.Println()
+		}
 	},
 }
 
@@ -31,5 +33,5 @@ func init() {
 	RandCmd.AddCommand(randSecretCmd)
 	randSecretCmd.Flags().IntVar(&flagRandSecretSize, "size", 512, "Size of the secret")
 	randSecretCmd.Flags().BoolVar(&flagRandSecretBase64, "base64", true, "Whether to encode output in base64")
-	randSecretCmd.Flags().StringVar(&flagRandSecretNewLine, "newline", "", "Optionally append a newline to the end of the output")
+	randSecretCmd.Flags().BoolVar(&flagRandSecretNewLine, "newline", false, "Optionally append a newline to the end of the output")
 }
