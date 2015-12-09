@@ -10,6 +10,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"path/filepath"
 )
 
 const (
@@ -51,15 +52,23 @@ func Decrypt(itemPath, secretPath string) string {
 }
 
 // Encrypt a databag item file
-func Encrypt(itemPath, secretPath string) string {
+func Encrypt(itemPath, secretPath string) (string, error) {
 	item := newDataBagItem(readFile(itemPath))
+
+	itemFileName := filepath.Base(itemPath)
+	itemExtName := filepath.Ext(itemPath)
+	itemBaseName := itemFileName[:len(itemFileName)-len(itemExtName)]
+	if item.ID != itemBaseName {
+		return "", fmt.Errorf("Filename of %s does not match the ID: %s", itemFileName, item.ID)
+	}
+
 	secretData := readFile(secretPath)
 	entries := item.encrypt(secretData)
 	bytes, e := json.MarshalIndent(entries, "", "  ")
 	if e != nil {
 		panic("Failed to marshal data bag item")
 	}
-	return string(bytes)
+	return string(bytes), nil
 }
 
 func readFile(path string) []byte {
