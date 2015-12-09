@@ -1,14 +1,14 @@
+// Implement encryption/decrytion of Chef encrypted data bag V1
+// Super thanks to https://github.com/dgryski/dkeyczar for showing me how to use Go's crypto functions.
+
 package lib
 
 import (
 	"crypto/aes"
 	"crypto/cipher"
-	"crypto/rand"
 	"crypto/sha256"
-	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"io"
 	"io/ioutil"
 )
 
@@ -141,11 +141,11 @@ func (item *dataBagItem) encrypt(secretData []byte) map[string]interface{} {
 	entries["id"] = item.ID
 
 	for key, entry := range item.Entries {
-		iv := randomIv()
+		iv := RandomBytes(aes.BlockSize)
 		entries[key] = &encryptedDataBagEntry{
 			Cipher:        dataBagCipherAlgorithm,
 			Version:       dataBagVersion,
-			Iv:            encodeBase64(iv) + "\n",
+			Iv:            EncodeBase64(iv) + "\n",
 			EncryptedData: encryptData(entry, iv, secretData) + "\n",
 		}
 	}
@@ -154,12 +154,12 @@ func (item *dataBagItem) encrypt(secretData []byte) map[string]interface{} {
 }
 
 func (entry *encryptedDataBagEntry) decrypt(secretData []byte) string {
-	ciphertext := decodeBase64(entry.EncryptedData)
+	ciphertext := DecodeBase64(entry.EncryptedData)
 	if len(ciphertext)%aes.BlockSize != 0 {
 		panic("Ciphertext is not a multiple of the block size")
 	}
 
-	iv := decodeBase64(entry.Iv)
+	iv := DecodeBase64(entry.Iv)
 	block := newCipher(secretData)
 	mode := cipher.NewCBCDecrypter(block, iv)
 	mode.CryptBlocks(ciphertext, ciphertext)
@@ -189,7 +189,7 @@ func encryptData(data string, iv, secretData []byte) string {
 	cipherOut := make([]byte, len(ciphertext))
 	mode.CryptBlocks(cipherOut, ciphertext)
 
-	return encodeBase64(cipherOut)
+	return EncodeBase64(cipherOut)
 }
 
 func newCipher(secretData []byte) cipher.Block {
@@ -199,24 +199,6 @@ func newCipher(secretData []byte) cipher.Block {
 		panic(fmt.Sprintf("Failed to create cipher. %+v", err))
 	}
 	return block
-}
-
-func randomIv() []byte {
-	iv := make([]byte, aes.BlockSize)
-	io.ReadFull(rand.Reader, iv)
-	return iv
-}
-
-func decodeBase64(str string) []byte {
-	data, err := base64.StdEncoding.DecodeString(str)
-	if err != nil {
-		panic(fmt.Sprintf("Decode base64 error: %+v", err))
-	}
-	return data
-}
-
-func encodeBase64(data []byte) string {
-	return base64.StdEncoding.EncodeToString(data)
 }
 
 func unPKCS7Padding(data []byte) []byte {

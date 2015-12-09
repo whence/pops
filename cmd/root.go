@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/MYOB-Technology/pops/cmd/db"
+	"github.com/MYOB-Technology/pops/cmd/random"
 	"github.com/MYOB-Technology/pops/lib"
 	"github.com/hashicorp/go-version"
 	"github.com/olebedev/config"
@@ -97,6 +98,7 @@ func init() {
 	rootCmd.Flags().BoolVar(&flagVersion, "version", false, "Print version number")
 	rootCmd.PersistentFlags().BoolVar(&flagVerbose, "verbose", false, "Log more for what is happening")
 	rootCmd.AddCommand(db.DbCmd)
+	rootCmd.AddCommand(random.RandCmd)
 }
 
 // Execute the root command
