@@ -15,6 +15,8 @@ If this works well, we may consider rewriting more and more stuff from `platform
 - Self-documented with `--help`.
 - Open source, including all the dependencies. No need to use your ssh key to pull the source or use the distribution.
 
+## Installation
+Check [releases](https://github.com/MYOB-Technology/pops/releases) for downloads. Put the executable into your $PATH. That's it.
 
 ## Current available commands
 - `dec` Decrypt Chef data bag
