@@ -1,5 +1,3 @@
-# pops
-
 ## Overview
 A single executable to do all the useful Ops commands.
 
