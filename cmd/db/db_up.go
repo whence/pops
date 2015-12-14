@@ -33,6 +33,8 @@ var dbUpCmd = &cobra.Command{
 				return errors.New("Please specify the image to use.")
 			}
 			return upLocalDockerPg()
+		case "pg":
+			return upPg()
 		default:
 			return errors.New("Unknown driver.")
 		}
@@ -41,22 +43,7 @@ var dbUpCmd = &cobra.Command{
 }
 
 func upLocalDockerPg() error {
-	var dbPort int
-	if flagUpDbPort == -1 {
-		dbPort = 5432
-	} else {
-		dbPort = flagUpDbPort
-	}
-
-	conn := &lib.PostgresConnection{
-		Username: flagUpMasterUsername,
-		Password: flagUpMasterPassword,
-		Host:     flagUpDbHost,
-		Port:     dbPort,
-		Database: "postgres",
-		SslMode:  flagUpDbSslMode,
-	}
-
+	conn := createPgConn()
 	containerName := flagUpContainerName
 
 	if err := lib.EnsureDockerWorking(); err != nil {
@@ -86,9 +73,38 @@ func upLocalDockerPg() error {
 	return nil
 }
 
+func upPg() error {
+	conn := createPgConn()
+	if err := lib.TryPgConnection(conn, flagPollDbAttempt); err != nil {
+		return err
+	}
+
+	fmt.Println(fmt.Sprintf("%s:%d is ready to use!", conn.Host, conn.Port))
+
+	return nil
+}
+
+func createPgConn() *lib.PostgresConnection {
+	var dbPort int
+	if flagUpDbPort == -1 {
+		dbPort = 5432
+	} else {
+		dbPort = flagUpDbPort
+	}
+
+	return &lib.PostgresConnection{
+		Username: flagUpMasterUsername,
+		Password: flagUpMasterPassword,
+		Host:     flagUpDbHost,
+		Port:     dbPort,
+		Database: "postgres",
+		SslMode:  flagUpDbSslMode,
+	}
+}
+
 func init() {
 	DbCmd.AddCommand(dbUpCmd)
-	dbUpCmd.Flags().StringVarP(&flagUpDriver, "driver", "d", "", "The driver to use to control the database. Currently only local-docker-pg is supported.")
+	dbUpCmd.Flags().StringVarP(&flagUpDriver, "driver", "d", "", "The driver to use to control the database. Currently only local-docker-pg and pg is supported.")
 	dbUpCmd.Flags().StringVar(&flagUpContainerName, "container", "pops-db", "The name of container to run. Applicable to docker drivers only.")
 	dbUpCmd.Flags().StringVar(&flagUpMasterUsername, "master-username", "postgres", "The master username of database server.")
 	dbUpCmd.Flags().StringVar(&flagUpMasterPassword, "master-password", "mysecretpassword", "The master password of database server.")
