@@ -1,0 +1,86 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>Pops by MYOB-Technology</title>
+
+    <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="stylesheet" href="stylesheets/github-light.css">
+    <meta name="viewport" content="width=device-width">
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+  </head>
+  <body>
+    <div class="wrapper">
+      <header>
+        <h1>Pops</h1>
+        <p>Platform ops in one executable</p>
+
+        <p class="view"><a href="https://github.com/MYOB-Technology/pops">View the Project on GitHub <small>MYOB-Technology/pops</small></a></p>
+
+
+        <ul>
+          <li><a href="https://github.com/MYOB-Technology/pops/zipball/master">Download <strong>ZIP File</strong></a></li>
+          <li><a href="https://github.com/MYOB-Technology/pops/tarball/master">Download <strong>TAR Ball</strong></a></li>
+          <li><a href="https://github.com/MYOB-Technology/pops">View On <strong>GitHub</strong></a></li>
+        </ul>
+      </header>
+      <section>
+        <h2>
+<a id="overview" class="anchor" href="#overview" aria-hidden="true"><span class="octicon octicon-link"></span></a>Overview</h2>
+
+<p>A single executable to do all the useful Ops commands.</p>
+
+<p>Pops is meant to be used by all developers. So they don't have to bother setting up Ruby environment to use <a href="https://github.com/MYOB-Technology/platform_ops">platform_ops</a>.</p>
+
+<p>If this works well, we may consider rewriting more and more stuff from <code>platform_ops</code> into <code>pops</code>.</p>
+
+<h2>
+<a id="why-creating-another-repo" class="anchor" href="#why-creating-another-repo" aria-hidden="true"><span class="octicon octicon-link"></span></a>Why creating another repo?</h2>
+
+<ul>
+<li>No runtime dependencies. Much easier to distribute to any user without setting up ruby environment and building gems.</li>
+<li>Much much faster. This is important for quick tasks. For instance, <code>knife data bag show</code> took 6s while <code>pops</code> can do it in under 0.1s.</li>
+<li>Single command to do everything, just like <code>git</code>.</li>
+<li>Self-documented with <code>--help</code>.</li>
+<li>Open source, including all the dependencies. No need to use your ssh key to pull the source or use the distribution.</li>
+</ul>
+
+<h2>
+<a id="installation" class="anchor" href="#installation" aria-hidden="true"><span class="octicon octicon-link"></span></a>Installation</h2>
+
+<p>Check <a href="https://github.com/MYOB-Technology/pops/releases">releases</a> for downloads. Put the executable into your $PATH. That's it.</p>
+
+<h2>
+<a id="current-available-commands" class="anchor" href="#current-available-commands" aria-hidden="true"><span class="octicon octicon-link"></span></a>Current available commands</h2>
+
+<ul>
+<li>
+<code>dec</code> Decrypt Chef data bag</li>
+<li>
+<code>enc</code> Encrypt Chef data bag</li>
+<li>
+<code>db up</code> Start the database</li>
+<li>
+<code>db init</code> Init the database</li>
+<li>
+<code>db down</code> Destroy the database</li>
+<li>
+<code>rand iv</code> Generate an random initialization vector</li>
+<li>
+<code>rand secret</code> Generate an random secret (Can be used to encrypt/decrypt Chef data bag)</li>
+</ul>
+
+<p>You can get the usage of all commands by <code>pops [command] -h</code></p>
+      </section>
+      <footer>
+        <p>This project is maintained by <a href="https://github.com/MYOB-Technology">MYOB-Technology</a></p>
+        <p><small>Hosted on GitHub Pages &mdash; Theme by <a href="https://github.com/orderedlist">orderedlist</a></small></p>
+      </footer>
+    </div>
+    <script src="javascripts/scale.fix.js"></script>
+    
+  </body>
+</html>
