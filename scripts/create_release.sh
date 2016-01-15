@@ -1,4 +1,6 @@
-set -e
+#!/usr/bin/env bash
+
+set -ex
 
 go install
 

@@ -1,11 +1,11 @@
-FROM alpine:latest
+FROM alpine:3.3
 
 # Install pops
 RUN apk add --update ca-certificates curl openssl && \
   curl -L -o /tmp/pops_linux_amd64.tar.gz \
-    https://github.com/MYOB-Technology/pops/releases/download/1.1.1/pops_linux_amd64.tar.gz && \
+    https://github.com/MYOB-Technology/pops/releases/download/1.1.2/pops_linux_amd64.tar.gz && \
   openssl dgst -sha256 /tmp/pops_linux_amd64.tar.gz \
-    | grep 'f2bbf5fd60132c0f9c742e206e610800698a65576b02461ac70b40a3c227f007' \
+    | grep 'e3b50690420082d2eeff8d62670b0a3da7d7988f13491077094e5b76ec3eaa31' \
     || (echo 'shasum mismatch' && false) && \
   tar -xzf /tmp/pops_linux_amd64.tar.gz -C /tmp && \
   rm /tmp/pops_linux_amd64.tar.gz && \
