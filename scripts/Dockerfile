@@ -5,7 +5,7 @@ RUN apk add --update ca-certificates curl openssl && \
   curl -L -o /tmp/pops_linux_amd64.tar.gz \
     https://github.com/MYOB-Technology/pops/releases/download/1.1.2/pops_linux_amd64.tar.gz && \
   openssl dgst -sha256 /tmp/pops_linux_amd64.tar.gz \
-    | grep 'e3b50690420082d2eeff8d62670b0a3da7d7988f13491077094e5b76ec3eaa31' \
+    | grep 'b8215952e2b187b2616eddc1d68e1f5ee65ed57b7708ff91f395059c0234870e' \
     || (echo 'shasum mismatch' && false) && \
   tar -xzf /tmp/pops_linux_amd64.tar.gz -C /tmp && \
   rm /tmp/pops_linux_amd64.tar.gz && \
