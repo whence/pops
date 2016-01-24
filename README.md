@@ -11,6 +11,7 @@ If this works well, we may consider rewriting more and more stuff from `platform
 - Much much faster. This is important for quick tasks. For instance, `knife data bag show` took 6s while `pops` can do it in under 0.1s.
 - Single command to do everything, just like `git`.
 - Self-documented with `--help`.
+- Open source, including all the dependencies. No need to use your ssh key to pull the source or use the distribution.
 
 ## Installation
 Check [releases](https://github.com/MYOB-Technology/pops/releases) for downloads. Put the executable into your $PATH. That's it.
