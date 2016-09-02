@@ -3,7 +3,7 @@ package random
 import (
 	"fmt"
 
-	"github.com/MYOB-Technology/pops/lib"
+	"github.com/whence/pops/lib"
 	"github.com/spf13/cobra"
 )
 

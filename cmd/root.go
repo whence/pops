@@ -7,9 +7,9 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/MYOB-Technology/pops/cmd/db"
-	"github.com/MYOB-Technology/pops/cmd/random"
-	"github.com/MYOB-Technology/pops/lib"
+	"github.com/whence/pops/cmd/db"
+	"github.com/whence/pops/cmd/random"
+	"github.com/whence/pops/lib"
 	"github.com/hashicorp/go-version"
 	"github.com/olebedev/config"
 	"github.com/spf13/cobra"
@@ -41,7 +41,7 @@ var rootCmd = &cobra.Command{
 				}
 				if !ok {
 					fmt.Println("Your version is not compliant with " + suggestedVersion + " as specified in " + configPath)
-					fmt.Println("Upgrade your version at https://github.com/MYOB-Technology/pops/releases")
+					fmt.Println("Upgrade your version at https://github.com/whence/pops/releases")
 				}
 			}
 		}
